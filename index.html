@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>To-Do List</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #todo-app {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 80%; /* Adjusted width for better responsiveness */
+      max-width: 600px; /* Set a max-width for larger screens */
+    }
+
+    .header {
+      background-color: #3498db;
+      padding: 20px;
+      color: white;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap; /* Enable wrapping for smaller screens */
+    }
+
+    input[type="text"] {
+      flex: 1; /* Expanded to fill available space */
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px 0 0 5px;
+      margin-right: 10px;
+      margin-bottom: 10px; /* Add margin for spacing between elements */
+    }
+
+    #categorySelect {
+      width: 25%; /* Adjusted width */
+      margin-bottom: 10px; /* Add margin for spacing between elements */
+    }
+
+    #addBtn {
+      padding: 10px;
+      width: 25%; /* Adjusted width */
+      background: #2ecc71;
+      color: #fff;
+      text-align: center;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 0 5px 5px 0;
+    }
+
+    #addBtn:hover {
+      background-color: #27ae60;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      cursor: pointer;
+      padding: 15px 12px;
+      font-size: 18px;
+      transition: 0.2s;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    li:hover {
+      background: #f0f0f0;
+    }
+
+    .delete {
+      color: #e74c3c;
+      cursor: pointer;
+    }
+
+    .important {
+      color: #e74c3c;
+      margin-right: 10px;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: #555;
+    }
+
+    .edit {
+      color: #3498db;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .category {
+      color: #9b59b6;
+      margin-right: 10px;
+    }
+
+    .category-select {
+      padding: 5px;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px; /* Add margin for spacing between elements */
+    }
+
+    .responsive-column {
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+
+<div id="todo-app">
+  <div class="header">
+    <input type="text" id="myInput" placeholder="Enter task...">
+    <select id="categorySelect" class="category-select">
+      <option value="">Select Category</option>
+      <option value="Work">Work</option>
+      <option value="Personal">Personal</option>
+      <option value="Study">Study</option>
+    </select>
+    <button onclick="newElement()" id="addBtn">Submit</button>
+  </div>
+
+  <ul id="myUL"></ul>
+</div>
+
+<script>
+  const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  const ul = document.getElementById('myUL');
+
+  function renderTasks() {
+    ul.innerHTML = '';
+    savedTasks.forEach((task, index) => {
+      const li = document.createElement('li');
+      const completedClass = task.completed ? 'completed' : '';
+      li.innerHTML = `
+        <span class="important ${completedClass}" onclick="toggleImportant(${index})">&#x2605;</span>
+        <span class="task ${completedClass}" onclick="toggleCompleted(${index})">${task.text}</span>
+        <span class="edit" onclick="editTask(${index})">&#9998;</span>
+        <span class="delete" onclick="deleteTask(${index})">&#x2715;</span>
+        <span class="category">${task.category || ''}</span>
+      `;
+      ul.appendChild(li);
+      if (task.important) {
+        li.classList.add('important');
+      }
+    });
+  }
+
+  renderTasks();
+
+  function newElement() {
+    const inputValue = document.getElementById('myInput').value;
+    const categorySelect = document.getElementById('categorySelect');
+    if (inputValue === '') {
+      alert('You must write something!');
+    } else {
+      const newTask = {
+        text: inputValue,
+        important: false,
+        completed: false,
+        category: categorySelect.value
+      };
+      savedTasks.unshift(newTask);
+      localStorage.setItem('tasks', JSON.stringify(savedTasks));
+      renderTasks();
+    }
+    document.getElementById('myInput').value = '';
+  }
+
+  function deleteTask(index) {
+    savedTasks.splice(index, 1);
+    localStorage.setItem('tasks', JSON.stringify(savedTasks));
+    renderTasks();
+  }
+
+  function toggleImportant(index) {
+    savedTasks[index].important = !savedTasks[index].important;
+    localStorage.setItem('tasks', JSON.stringify(savedTasks));
+    renderTasks();
+  }
+
+  function toggleCompleted(index) {
+    savedTasks[index].completed = !savedTasks[index].completed;
+    localStorage.setItem('tasks', JSON.stringify(savedTasks));
+    renderTasks();
+  }
+
+  function editTask(index) {
+    const newText = prompt('Edit task:', savedTasks[index].text);
+    if (newText !== null) {
+      savedTasks[index].text = newText;
+      localStorage.setItem('tasks', JSON.stringify(savedTasks));
+      renderTasks();
+    }
+  }
+
+  // Responsive Design
+  function updateResponsiveLayout() {
+    const windowWidth = window.innerWidth;
+    const responsiveColumn = document.getElementById('todo-app');
+
+    if (windowWidth <= 600) {
+      responsiveColumn.classList.add('responsive-column');
+    } else {
+      responsiveColumn.classList.remove('responsive-column');
+    }
+  }
+
+  window.addEventListener('resize', updateResponsiveLayout);
+  updateResponsiveLayout();
+</script>
+</body>
+</html>
